@@ -19,18 +19,18 @@ async def create_event(request: CreateGoogleEventRequest):
             request.attendees,
             request.description
         )
-        meeting = Meeting(
-            requested_data=request.dict(),
-            response_data=event_details,
-            meeting_url=event_details['url'],
-            event_id=event_details['id']
-        )
-        db.add(meeting)
-        db.commit()
-        for attendee in request.attendees:
-            db_attendee = Attendee(email=attendee, meeting_id=meeting.id)
-            db.add(db_attendee)
-        db.commit()
+        # meeting = Meeting(
+        #     requested_data=request.dict(),
+        #     response_data=event_details,
+        #     meeting_url=event_details['url'],
+        #     event_id=event_details['id']
+        # )
+        # db.add(meeting)
+        # db.commit()
+        # for attendee in request.attendees:
+        #     db_attendee = Attendee(email=attendee, meeting_id=meeting.id)
+        #     db.add(db_attendee)
+        # db.commit()
         return event_details
     except Exception as e:
         db.rollback()

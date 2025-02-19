@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import List, Optional
+
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
@@ -13,8 +16,8 @@ class GoogleCalendarService:
 
     def load_token(self):
         if os.path.exists('token.json'):
-            with open('token.json', 'r') as token:
-                self.creds = Credentials.from_authorized_user_file(token)
+            # with open('token.json', 'r') as token:
+            self.creds = Credentials.from_authorized_user_file("token.json")
 
     def save_token(self, creds):
         with open('token.json', 'w') as token:
@@ -24,7 +27,7 @@ class GoogleCalendarService:
         flow = Flow.from_client_secrets_file(
             'credentials.json',
             scopes=['https://www.googleapis.com/auth/calendar'],
-            redirect_uri='http://localhost:8000/google/callback'
+            redirect_uri='http://localhost:8000/oauth2callback'
         )
         auth_url, _ = flow.authorization_url(prompt='consent')
         return auth_url
@@ -33,7 +36,7 @@ class GoogleCalendarService:
         flow = Flow.from_client_secrets_file(
             'credentials.json',
             scopes=['https://www.googleapis.com/auth/calendar'],
-            redirect_uri='http://localhost:8000/google/callback'
+            redirect_uri='http://localhost:8000/oauth2callback'
         )
         flow.fetch_token(code=code)
         self.creds = flow.credentials
@@ -63,10 +66,23 @@ class GoogleCalendarService:
                 'createRequest': {
                     'requestId': 'sample123',
                     'conferenceSolutionKey': {'type': 'hangoutsMeet'},
+                    'conferenceMetadata': {
+                        'autoAccept': True  # This ensures automatic admission
+                    }
                 },
             },
+            'guestsCanInviteOthers': True,  # Allow attendees to invite others
+            'guestsCanModify': True,  # Prevent attendees from modifying the event
+            'guestsCanSeeOtherGuests': True,  # Allow attendees to see other guests
+            "status":"confirmed"
         }
         event = service.events().insert(calendarId='primary', body=event, conferenceDataVersion=1).execute()
+        # moved_event = service.events().move(
+        #     calendarId='primary',
+        #     eventId=event['id'],
+        #     destination="saeedmouzarmi@gmail.com"
+        # ).execute()
+
         return {
             'id': event['id'],
             'url': event['hangoutLink'],
